@@ -48,11 +48,8 @@ Info.TextSize = 14
 Info.TextColor3 = Color3.new(0.9, 0.9, 0.9)
 Info.Parent = Frame
 
--- Biến hỗ trợ tính toán
+-- Cập nhật màu Rainbow & Tính FPS
 local fps = 0
-local lastUpdate = os.clock()
-
--- Cập nhật màu Rainbow & Tính FPS (Tối ưu RenderStepped)
 RunService.RenderStepped:Connect(function(dt)
     fps = math.floor(1 / dt)
     local t = os.clock()
@@ -61,7 +58,6 @@ RunService.RenderStepped:Connect(function(dt)
     Stroke.Color = rainbow
 end)
 
--- Cập nhật Text (0.5 giây một lần để tiết kiệm CPU)
 task.spawn(function()
     while task.wait(0.5) do
         local ping = math.floor(Player:GetNetworkPing() * 1000)
@@ -69,16 +65,13 @@ task.spawn(function()
     end
 end)
 
--- Hệ thống kéo thả (Drag) mượt mà
-local dragging, dragInput, dragStart, startPos
+-- Hệ thống kéo thả
+local dragging, dragStart, startPos
 Frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = Frame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
-        end)
     end
 end)
 
@@ -86,6 +79,12 @@ UserInputService.InputChanged:Connect(function(input)
     if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local delta = input.Position - dragStart
         Frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
     end
 end)
 
@@ -107,16 +106,16 @@ local function Notify()
     NT.TextSize = 14
     NT.Parent = N
 
-    -- Hiệu ứng trượt vào
+    -- Trượt vào
     TweenService:Create(N, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -300, 0, 50)}):Play()
     
     task.delay(2, function()
-        TweenService:Create(N, TweenInfo.new(0.5, Enum.EasingStyle.QuadIn), {Position = UDim2.new(1, 20, 0, 50)}):Play()
+        -- LỖI ĐÃ SỬA TẠI ĐÂY: Enum.EasingStyle.Quad
+        TweenService:Create(N, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 20, 0, 50)}):Play()
         task.wait(0.5)
         N:Destroy()
         Frame.Visible = true
         
-        -- Load script ngoại vi (Cẩn thận với link lạ nhé!)
         pcall(function()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/main/BananaCat-kaitunBF.lua"))()
         end)
