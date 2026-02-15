@@ -1,2 +1,0 @@
-# bananaSCritpt
-CatHub-Premium
