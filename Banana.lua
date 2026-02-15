@@ -1,4 +1,4 @@
--- Chờ game tải
+-- Chờ game và player sẵn sàng
 if not game:IsLoaded() then game.Loaded:Wait() end
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,50 +8,55 @@ local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
--- Tạo UI
+-- Xóa UI cũ nếu có để tránh trùng lặp
+local oldGui = PlayerGui:FindFirstChild("FPS_PING_SYSTEM_FIXED")
+if oldGui then oldGui:Destroy() end
+
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "AOV_SYSTEM_FIXED"
+Gui.Name = "FPS_PING_SYSTEM_FIXED"
 Gui.ResetOnSpawn = false
 Gui.Parent = PlayerGui
 
 local Frame = Instance.new("Frame")
 Frame.Size = UDim2.new(0, 240, 0, 80)
 Frame.Position = UDim2.new(0.5, -120, 0.1, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Frame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 Frame.BackgroundTransparency = 0.2
 Frame.BorderSizePixel = 0
-Frame.Visible = false
+Frame.Visible = false -- Sẽ hiện sau khi Notify xong
 Frame.Parent = Gui
 
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 12)
+local Corner = Instance.new("UICorner", Frame)
+Corner.CornerRadius = UDim.new(0, 10)
 local Stroke = Instance.new("UIStroke", Frame)
 Stroke.Thickness = 2
 
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30)
 Title.BackgroundTransparency = 1
-Title.Text = "FPS • PING"
+Title.Text = "AOV • FPS & PING"
 Title.Font = Enum.Font.GothamBold
-Title.TextColor3 = Color3.new(1, 1, 1)
 Title.TextSize = 16
+Title.TextColor3 = Color3.new(1, 1, 1)
 Title.Parent = Frame
 
 local Info = Instance.new("TextLabel")
 Info.Size = UDim2.new(1, 0, 0, 40)
 Info.Position = UDim2.new(0, 0, 0, 35)
 Info.BackgroundTransparency = 1
+Info.Text = "FPS: -- | Ping: --"
 Info.Font = Enum.Font.Gotham
-Info.TextColor3 = Color3.new(1, 1, 1)
 Info.TextSize = 14
+Info.TextColor3 = Color3.new(1, 1, 1)
 Info.Parent = Frame
 
--- Vòng lặp cập nhật FPS/Rainbow
+-- Vòng lặp tối ưu: Rainbow & FPS
 local fps = 0
 RunService.RenderStepped:Connect(function(dt)
     fps = math.floor(1 / dt)
-    local c = Color3.fromHSV((os.clock() % 5) / 5, 0.75, 1)
-    Title.TextColor3 = c
-    Stroke.Color = c
+    local rainbow = Color3.fromHSV((os.clock() % 5) / 5, 0.8, 1)
+    Title.TextColor3 = rainbow
+    Stroke.Color = rainbow
 end)
 
 task.spawn(function()
@@ -61,7 +66,7 @@ task.spawn(function()
     end
 end)
 
--- Kéo thả UI
+-- Hệ thống kéo thả mượt
 local dragging, dragStart, startPos
 Frame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -84,37 +89,37 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
--- Thông báo khởi động (Chỗ bị lỗi lúc trước)
+-- Notify Startup (CHỖ FIX CHÍNH)
 local function Startup()
     local N = Instance.new("Frame")
-    N.Size = UDim2.new(0, 280, 0, 70)
+    N.Size = UDim2.new(0, 260, 0, 60)
     N.Position = UDim2.new(1, 20, 0, 50)
-    N.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    N.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     N.Parent = Gui
-    Instance.new("UICorner", N).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", N).CornerRadius = UDim.new(0, 8)
+    
+    local NT = Instance.new("TextLabel")
+    NT.Size = UDim2.new(1, 0, 1, 0)
+    NT.BackgroundTransparency = 1
+    NT.Text = "Vận hành hệ thống AOV..."
+    NT.Font = Enum.Font.GothamMedium
+    NT.TextColor3 = Color3.new(1, 1, 1)
+    NT.TextSize = 13
+    NT.Parent = N
 
-    local T = Instance.new("TextLabel")
-    T.Size = UDim2.new(1, 0, 1, 0)
-    T.BackgroundTransparency = 1
-    T.Text = "Đang kết nối hệ thống..."
-    T.TextColor3 = Color3.new(1, 1, 1)
-    T.Font = Enum.Font.GothamMedium
-    T.TextSize = 14
-    T.Parent = N
+    -- Dùng EasingStyle và EasingDirection tách biệt để không bao giờ lỗi
+    local tweenIn = TweenService:Create(N, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -280, 0, 50)})
+    local tweenOut = TweenService:Create(N, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 20, 0, 50)})
 
-    -- FIX Ở ĐÂY: Dùng Enum.EasingStyle.Quad và Enum.EasingDirection.Out/In riêng biệt
-    local infoIn = TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    local infoOut = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-
-    TweenService:Create(N, infoIn, {Position = UDim2.new(1, -300, 0, 50)}):Play()
-
+    tweenIn:Play()
+    
     task.delay(2.5, function()
-        TweenService:Create(N, infoOut, {Position = UDim2.new(1, 20, 0, 50)}):Play()
+        tweenOut:Play()
         task.wait(0.5)
         N:Destroy()
         Frame.Visible = true
         
-        -- Load script phụ
+        -- Gọi script phụ
         pcall(function()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/obiiyeuem/vthangsitink/main/BananaCat-kaitunBF.lua"))()
         end)
